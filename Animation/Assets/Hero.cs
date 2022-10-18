@@ -10,6 +10,13 @@ public class Hero : MonoBehaviour
     private bool isGrouded = false;
     float horizontalMove = 0f;
 
+    private bool canDash = true;
+    private bool isDashing;
+    private float dashingPower = 24f;
+    private float dashingTime = 0.2f;
+    private float dashingCooldown = 1f;
+    [SerializeField] private TrailRenderer tr;
+
     private Rigidbody2D rb;
     private Animator anim;
     private SpriteRenderer sprite;  
@@ -45,6 +52,11 @@ public class Hero : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
+        if (isDashing)
+        {
+            return;
+        }
+
         horizontalMove = Input.GetAxisRaw("Horizontal") * speed;
 
         anim.SetFloat("Spead", Mathf.Abs(horizontalMove));
@@ -57,10 +69,15 @@ public class Hero : MonoBehaviour
             Jump();
             anim.SetBool("IsJumping", true); 
         }
+
+        if(Input.GetKeyDown(KeyCode.LeftShift) && canDash)
+        {
+            StartCoroutine(Dash());
+        }
     }
     private void CheckGround()
     {
-        if (!isGrouded) State = States.jump;
+     //   if (!isGrouded) State = States.jump;
 
         Collider2D[] collider = Physics2D.OverlapCircleAll(transform.position, 0.3f);
         isGrouded = collider.Length > 1;
@@ -80,5 +97,28 @@ public class Hero : MonoBehaviour
     public  void OnLanding()
     {
         anim.SetBool("IsJumping", false);
+    }
+
+
+/*    private void FixedUpdate()
+    {
+        if (isDashing)
+        {
+            return;
+        }
+    }*/
+    private IEnumerator Dash()
+    {
+        canDash = false;
+        isDashing = true;
+        float originalGravity = rb.gravityScale;
+        rb.gravityScale = 0f;
+        rb.velocity = new Vector2(transform.localScale.x * dashingPower, 0f);
+        yield return new WaitForSeconds(dashingTime);
+        tr.emitting = false;
+        rb.gravityScale = originalGravity;
+        isDashing = false;
+        yield return new WaitForSeconds(dashingCooldown);
+        canDash = true;
     }
 }
