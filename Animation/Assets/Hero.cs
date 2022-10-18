@@ -8,6 +8,7 @@ public class Hero : MonoBehaviour
     [SerializeField] private int lives = 5;
     [SerializeField] private float jumpForce = 15f;
     private bool isGrouded = false;
+    float horizontalMove = 0f;
 
     private Rigidbody2D rb;
     private Animator anim;
@@ -37,19 +38,25 @@ public class Hero : MonoBehaviour
     }
     private void Jump()
     {
-      
-
+       
         rb.AddForce(transform.up * jumpForce, ForceMode2D.Impulse);
     }
 
     // Update is called once per frame
     private void Update()
     {
-        if (isGrouded) State = States.idle;
+        horizontalMove = Input.GetAxisRaw("Horizontal") * speed;
+
+        anim.SetFloat("Spead", Mathf.Abs(horizontalMove));
+
+
         if (Input.GetButton("Horizontal"))
             Run();
         if (Input.GetButtonDown("Jump"))
+        {
             Jump();
+            anim.SetBool("IsJumping", true); 
+        }
     }
     private void CheckGround()
     {
@@ -68,5 +75,10 @@ public class Hero : MonoBehaviour
     {
         get { return (States)anim.GetInteger("state"); }
         set { anim.SetInteger("state",(int)value); }
+    }
+
+    public  void OnLanding()
+    {
+        anim.SetBool("IsJumping", false);
     }
 }
